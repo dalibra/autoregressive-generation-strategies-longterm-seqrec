@@ -1,0 +1,18 @@
+cuda_visible_devices: 0
+
+project_name: generation_paper
+task_name: GPT_temperature
+
+train_task: 0
+
+evaluator:
+  top_k: [10]
+test_metrics: True
+
+generation: True
+generation_params:
+  num_return_sequences: 1
+  no_repeat_ngram_size: 1
+  do_sample: True
+  top_k: 50
+  temperature: 0.1
