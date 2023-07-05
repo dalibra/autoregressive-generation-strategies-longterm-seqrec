@@ -1,0 +1,45 @@
+cuda_visible_devices: 0
+
+project_name: generation_paper
+task_name: GPT_train_predict
+
+data_path: data/ml-1m.csv
+last_n_items: 10
+
+dataset:
+  max_length: 128
+  shift_labels: False
+
+dataloader:
+  batch_size: 64
+  test_batch_size: 256
+  num_workers: 8
+  validation_size: 2000
+
+model: GPT4Rec
+model_params:
+  n_positions: 128
+  n_embd: 64
+  n_layer: 2
+  n_head: 1
+
+seqrec_module:
+  lr: 0.001
+  predict_top_k: 10  # this value is used for validation
+  filter_seen: True
+
+trainer_params:
+  max_epochs: 100
+patience: 10
+
+evaluator:
+  top_k: [10]
+test_metrics: True
+
+generation: False
+generation_params:
+  num_return_sequences: 1
+  no_repeat_ngram_size: 1
+  do_sample: False
+  # temperature: 0.1
+  # num_beams: 1
