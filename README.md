@@ -5,7 +5,7 @@ This repository contains code for the paper ''**Autoregressive generation strate
 The goal of sequential recommendations is usually formulated in terms of next-item prediction. In this paper, we consider Transformer-based models for longer-term sequential recommendations. We introduce a generative approach to this task, which consists of training an autoregressive neural network on a classic next-item prediction task and autoregressive generation of recommendations item-by-item for the next N items. We explore different autoregressive generation strategies, including greedy decoding, beam search and temperature sampling. For temperature sampling, we introduce a novel strategy based on aggregation of multiple generated sequences. Experiments on Movielens-1M and Movielens-20M datasets with the GPT-2 model show that this approach can lead to performance improvement on longer time horizons.
 
 ## Usage
-`src/notebooks` contains notebooks for baselines mentioned in the paper: BPR-MF, BERT4Rec and SASRec.
+`notebooks` contains notebooks for baselines mentioned in the paper: BPR-MF, BERT4Rec and SASRec.
 
 We use `Hydra` for configuring the experements with GPT-2 model and `ClearML` to log results.
 All configurable parameters can be found in corresponding configs at `src/configs`.
