@@ -21,7 +21,7 @@ To use trained model for inference, copy task ID `<TRAIN_ID>` from the obtained 
 
 ### Test Model
 
-Top-k prediction:
+Top-K prediction:
 ```
 python src/run_predict.py --config-name=GPT_predict task_name=ml1_GPT_predict train_task=<TRAIN_ID>
 ```
