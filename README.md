@@ -5,10 +5,17 @@ This repository contains code for the paper ''**Autoregressive generation strate
 The goal of sequential recommendations is usually formulated in terms of next-item prediction. In this paper, we consider Transformer-based models for longer-term sequential recommendations. We introduce a generative approach to this task, which consists of training an autoregressive neural network on a classic next-item prediction task and autoregressive generation of recommendations item-by-item for the next N items. We explore different autoregressive generation strategies, including greedy decoding, beam search, and temperature sampling. In addition, we propose novel generation strategies based on multi-sequence generation with temperature sampling and subsequent aggregation. Experiments on diverse datasets with the GPT-2 model show that this approach can improve performance on longer time horizons.
 
 ## Usage
+
+Install requirements:
+```sh
+pip install -r requirements.txt
+```
+Note, that the code doesn't work with `python>=3.10`, since `recommenders` library needs `python<3.10`.
+
 `notebooks` contains code for baselines mentioned in the paper: BPR-MF, BERT4Rec and SASRec.
 
-We use `Hydra` for configuring the experements with GPT-2 model and `ClearML` to log results.
-All configurable parameters can be found in corresponding configs at `src/configs`.
+We use [Hydra](https://hydra.cc/) for configuring the experements and `ClearML` to log results.
+All configurable parameters can be found in corresponding configs at `src/configs`, and also they can be overriden from the command line.
 
 Below are examples of training GPT-2 and testing obtained model with different strategies.
 
