@@ -10,9 +10,10 @@ Install requirements:
 ```sh
 pip install -r requirements.txt
 ```
-Note, that the code doesn't work with `python >= 3.10`, since `recommenders` library needs `python < 3.10`.
+**Note, that the code doesn't work with `python >= 3.10`, since `recommenders` library requires `python < 3.10`**.
 
 `notebooks` contains code for baselines mentioned in the paper: BPR-MF, BERT4Rec and SASRec.
+BPR-MF code is in a separate notebook `notebooks/BPR-MF.ipynb`
 
 We use [Hydra](https://hydra.cc/) for configuring the experements and [ClearML](`https://clear.ml/docs/latest/docs`) to log results.
 All configurable parameters can be found in corresponding configs at `src/configs`, and also they can be overriden from the command line.
