@@ -17,14 +17,36 @@ Before running the code, create a `data/` folder and place the preprocessed data
 We use [Hydra](https://hydra.cc/) for configuring the experiments and [ClearML](`https://clear.ml/docs/latest/docs`) to log results.
 All configurable parameters can be found in corresponding configs at `src/configs`, and also they can be overridden from the command line.
 
-Below are examples of training GPT-2 and testing the obtained model with different strategies.
+Below are examples of training GPT-2 and testing the obtained model with different strategies.AAAAAAa
+
+Baselines:
+```sh
+# SASRec+
+python src/run_train_predict.py --config-name=SASRec_train_predict data_path=data/ml-20m.csv task_name=ml-20m_SASRec_predict dataloader.test_batch_size=256
+# BERT4Rec
+python src/run_train_predict.py --config-name=BERT4Rec_train_predict data_path=data/ml-20m.csv task_name=ml-20m_BERT4Rec_predict dataloader.test_batch_size=256
+```
+
+BPR-MF code and experiments are in a separate notebook `notebooks/BPR-MF.ipynb`.
+
+
+To optimize our process, we can train the model once and then deploy the trained version for subsequent tests, eliminating the need to retrain it with every run. For that, save task ID `<TRAIN_ID>` from the obtained `ClearML` training page.
+```sh
+# Train GPT-2 model
+python src/run_train.py --config-name=GPT_train data_path=data/ml-20m.csv task_name=ml-20m_GPT_predict dataloader.test_batch_size=256
+```
+And then use `<TRAIN_ID>` as an argument for `train_task`:
+```sh
+# GPT Top-K prediction
+python src/run_predict.py --config-name=GPT_predict task_name=ml-20m_GPT_predict train_task=<TRAIN_ID>
+```
+
 
 ### Train Model
 
 ```
 python src/run_train.py --config-name=GPT_train data_path=data/ml-1m.csv task_name=ml1_GPT_train seqrec_module.lr=1e-3
 ```
-To later use the trained model for inference, copy task ID `<TRAIN_ID>` from the obtained ClearML training page.
 
 ### Test Model
 
@@ -49,13 +71,3 @@ Temperature sampling with multi-sequence aggregation:
 ```
 python src/run_predict.py --config-name=GPT_temperature task_name=ml1_GPT_multisequence train_task=<TRAIN_ID> generation_params.temperature=0.3 generation_params.num_return_sequences=20
 ```
-
-Baselines:
-```sh
-# SASRec+
-python src/run_train_predict.py --config-name=SASRec_train_predict data_path=data/ml-20m.csv task_name=steam_SASRec_predict dataloader.test_batch_size=256
-# BERT4Rec
-python src/run_train_predict.py --config-name=BERT4Rec_train_predict data_path=data/ml-20m.csv task_name=steam_BERT4Rec_predict dataloader.test_batch_size=256
-```
-
-BPR-MF code and experiments are in a separate notebook `notebooks/BPR-MF.ipynb`.
