@@ -10,7 +10,7 @@ Install requirements:
 ```sh
 pip install -r requirements.txt
 ```
-**Note, that the code doesn't work with `python >= 3.10`, since `recommenders` library requires `python < 3.10`**.
+**Note, that the code doesn't work with `Python >= 3.10`, since `recommenders` library requires `Python < 3.10`**. This repository has been tested with `Pyrhon 3.9.16`.
 
 `notebooks` contains code for baselines mentioned in the paper: BPR-MF, BERT4Rec and SASRec.
 BPR-MF code is in a separate notebook `notebooks/BPR-MF.ipynb`
