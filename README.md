@@ -20,7 +20,7 @@ All configurable parameters can be found in corresponding configs at `src/config
 
 ## Examples
 
-Below are examples of training GPT-2 and testing the obtained model with different strategies.AAAAAAa
+Below you can find examples of training models and then testing them using different strategies, mentioned in the paper.
 
 #### Baselines:
 ```sh
