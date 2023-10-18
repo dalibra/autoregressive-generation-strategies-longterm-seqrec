@@ -17,9 +17,12 @@ Before running the code, create a `data/` folder and place the preprocessed data
 We use [Hydra](https://hydra.cc/) for configuring the experiments and [ClearML](`https://clear.ml/docs/latest/docs`) to log results.
 All configurable parameters can be found in corresponding configs at `src/configs` and can be overridden from the command line.
 
+
+## Examples
+
 Below are examples of training GPT-2 and testing the obtained model with different strategies.AAAAAAa
 
-Baselines:
+#### Baselines:
 ```sh
 # SASRec+
 python src/run_train_predict.py --config-name=SASRec_train_predict data_path=data/ml-20m.csv task_name=ml-20m_SASRec_predict dataloader.test_batch_size=256
@@ -41,7 +44,7 @@ And then use `<TRAIN_ID>` as an argument for `train_task` parameter:
 python src/run_predict.py --config-name=GPT_predict train_task=<TRAIN_ID> task_name=ml-20m_GPT_predict dataloader.test_batch_size=256
 ```
 
-### Generation strategies
+#### Generation strategies
 
 ```sh
 # Greedy decoding
