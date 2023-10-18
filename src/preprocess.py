@@ -1,5 +1,5 @@
 """
-Filter interactions.
+Filter interactions and add time index column.
 """
 
 

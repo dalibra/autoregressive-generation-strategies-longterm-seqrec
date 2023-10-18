@@ -8,8 +8,10 @@ import os
 import hydra
 import numpy as np
 import pandas as pd
+from clearml import Task #####################
+
 import pytorch_lightning as pl
-from clearml import Task
+
 from omegaconf import OmegaConf
 from pytorch_lightning.callbacks import TQDMProgressBar
 from modules import SeqRecHuggingface
@@ -28,6 +30,10 @@ def main(config):
         os.environ['CUDA_VISIBLE_DEVICES'] = str(config.cuda_visible_devices)
 
     if hasattr(config, 'project_name'):
+        if hasattr(config, 'seed'):
+            Task.set_random_seed(config.seed)
+        else:
+            Task.set_random_seed(None)
         task = Task.init(project_name=config.project_name, task_name=config.task_name,
                         reuse_last_task_id=False)
         task.connect(OmegaConf.to_container(config))

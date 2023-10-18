@@ -1,13 +1,13 @@
 """
 Pytorch Lightning Modules.
 """
-
 from collections import Counter
 
 import numpy as np
 import pytorch_lightning as pl
 import torch
 from torch import nn
+from transformers.generation.logits_process import LogitsProcessor
 
 
 class SeqRecBase(pl.LightningModule):
@@ -106,37 +106,43 @@ class SeqRecBase(pl.LightningModule):
 
 
 class SeqRecHuggingface(SeqRecBase):
-
     generate: bool = False
     generate_params: dict
 
     def training_step(self, batch, batch_idx):
-
         outputs = self.model(**batch)
         loss = outputs.loss
-
         return loss
 
     def prediction_output(self, batch):
-
-        outputs = self.model(input_ids=batch['input_ids'],
-                             attention_mask=batch['attention_mask'])
-
+        outputs = self.model(
+            input_ids=batch['input_ids'],
+            attention_mask=batch['attention_mask']
+        )
         return outputs.logits
 
     def set_predict_mode(self,
                          generate=False,
+                         mode='reciprocal_rank_aggregation',
                          **generate_kwargs):
         """
         Set `predict` options.
-        If `generate` is False, general predict method is used, which returns top-k most relevant next items.
-        If `generate` is True, sequence is continued with `generate` method of HuggingFaceModel class.
+        If `generate` is False, the general predict method is used, which returns top-k most relevant next items.
+        If `generate` is True, the sequence is continued with the `generate` method of the HuggingFaceModel class.
         `generate_kwargs` are passed to model.generate(). Default generate_params are
         {"early_stopping": False, "no_repeat_ngram_size": 1}.
-        `Generate` params are explained here: https://huggingface.co/blog/how-to-generate
+        `Generate` params are explained here: https://huggingface.co/blog/how-to-generate.
+        If 'mode' is 'reciprocal_rank_aggregation', for each item sum reciprocal ranks across all sequences; also used for greedy search, beam search and temperature sampling with a single sequence, because it takes into account only the order of items in the generated sequence.
+        If 'mode' is 'relevance_aggregation', for each item sum relevances across all steps, then across all sequences.
         """
+        self.mode = mode
         self.generate = generate
-        self.generate_params = {"early_stopping": False, "no_repeat_ngram_size": 1}
+        self.generate_params = {"early_stopping": False,
+                                'top_k': 0,
+                                'return_dict_in_generate': True,
+                                'output_scores': True
+                                } if (self.mode != 'reciprocal_rank_aggregation' and self.generate) else {"early_stopping": False}
+
         if generate and generate_kwargs is not None:
             self.generate_params.update(generate_kwargs)
 
@@ -145,16 +151,23 @@ class SeqRecHuggingface(SeqRecBase):
         Combine multiple sequences generated for one user into one and leave top-k with maximal score.
         Score of an item is calculated as a sum of scores of an item in each sequence.
         """
-        preds_batch, scores_batch = [], []
         num_seqs = self.generate_params["num_return_sequences"]
-        for user_idx in range(batch['user_id'].shape[0]):
-            dicts = [dict(zip(preds[user_idx * num_seqs + i, :].detach().cpu().numpy(),
-                              scores[user_idx * num_seqs + i, :].detach().cpu().numpy())) for i in range(num_seqs)]
-            combined_dict = dict(sum((Counter(d) for d in dicts), Counter()))
-            preds_one, scores_one = list(
-                zip(*sorted(combined_dict.items(), key=lambda x: x[1], reverse=True)[:preds.shape[1]]))
-            preds_batch.append(preds_one)
-            scores_batch.append(scores_one)
+
+        if self.mode == 'relevance_aggregation':
+            summed_scores = scores.reshape(batch['user_id'].shape[0], num_seqs, -1).sum(dim=1).sort(descending=True)
+            scores_batch = summed_scores[0][:, :self.predict_top_k].cpu()
+            preds_batch = summed_scores[1][:, :self.predict_top_k].cpu()
+        else:
+            preds_batch, scores_batch = [], []
+            for user_idx in range(batch['user_id'].shape[0]):
+                dicts = [dict(zip(preds[user_idx * num_seqs + i, :].detach().cpu().numpy(),
+                                  scores[user_idx * num_seqs + i, :].detach().cpu().numpy())) for i in range(num_seqs)]
+                combined_dict = dict(sum((Counter(d) for d in dicts), Counter()))
+                preds_one, scores_one = list(
+                    zip(*sorted(combined_dict.items(), key=lambda x: x[1], reverse=True)[:preds.shape[1]]))
+                preds_batch.append(preds_one)
+                scores_batch.append(scores_one)
+
         return np.array(preds_batch), np.array(scores_batch)
 
     def predict_step(self, batch, batch_idx):
@@ -162,7 +175,7 @@ class SeqRecHuggingface(SeqRecBase):
 
         if not self.generate or \
                 ("num_return_sequences" not in self.generate_params
-                 or self.generate_params["num_return_sequences"] == 1):
+                 or ((self.generate_params["num_return_sequences"] == 1) & (self.mode != 'relevance_aggregation'))):
             if not self.generate:
                 preds, scores = self.make_prediction(batch)
             else:
@@ -178,32 +191,56 @@ class SeqRecHuggingface(SeqRecBase):
 
     def make_prediction_generate(self, batch):
         """
-        Continue sequence with `generate` method of HuggingFaceModel class.
-        Batch should be left-padded e.g. with the PaddingCollateFn(left_padding=True).
+        Continue the sequence with the `generate` method of the HuggingFaceModel class.
+        Batch should be left-padded, e.g., with the PaddingCollateFn(left_padding=True).
         Input sequence may be cropped,
         maximum self.model.config.n_positions - self.predict_top_k last items are used as a sequence beginning.
         """
-        seen_items = None
-        if self.filter_seen:
-            if batch['full_history'].shape[0] == 1:
-                seen_items = batch['full_history'][
-                    batch['full_history'] != self.padding_idx].detach().cpu().numpy().reshape(-1, 1).tolist()
-            else:
-                raise ValueError(
-                    "Use batch_size=1 to continue sequence with `HuggingFaceModel.generate()` and `filter_seen` == True")
-
-        seq = self.model.generate(
-            batch['input_ids'][:, - self.model.config.n_positions + self.predict_top_k:].to(self.model.device),
-            pad_token_id=self.padding_idx,
-            max_new_tokens=self.predict_top_k,
-            bad_words_ids=seen_items,
-            **self.generate_params
+        if self.mode == 'reciprocal_rank_aggregation':
+            seq = self.model.generate(
+                batch['input_ids'][:, - self.model.config.n_positions + self.predict_top_k:].to(self.model.device),
+                pad_token_id=self.padding_idx,
+                max_new_tokens=self.predict_top_k,
+                logits_processor=[FilterSeenProcessor()],
+                **self.generate_params
             )
-        preds = seq[:, - self.predict_top_k:]
-        scores_one = torch.pow(torch.arange(self.predict_top_k, dtype=torch.long, device=self.model.device) + 1.,
-                               -1).reshape(1, -1)
-        scores = torch.tile(scores_one, [preds.shape[0], 1])
+            preds = seq[:, -self.predict_top_k:]
+
+            scores_one = torch.pow(
+                torch.arange(
+                    self.predict_top_k,
+                    dtype=torch.long,
+                    device=self.model.device
+                ) + 1., -1
+            ).reshape(1, -1)
+            scores = torch.tile(scores_one, [preds.shape[0], 1])
+
+        else:
+            seq = self.model.generate(
+                batch['input_ids'][:, -self.model.config.n_positions + self.predict_top_k:].to(self.model.device),
+                pad_token_id=self.padding_idx,
+                max_new_tokens=self.predict_top_k,
+                **self.generate_params
+            )
+
+            preds = None
+
+            if 'temperature' in self.generate_params.keys():
+                temp = self.generate_params['temperature']
+                scores = torch.nn.functional.softmax(torch.stack(list(seq.scores), dim=0) / temp, dim=-1).sum(dim=0)
+            else:
+                scores = torch.nn.functional.softmax(torch.stack(list(seq.scores), dim=0), dim=-1).sum(dim=0)
+
+            scores = scores.scatter_(1, batch['full_history'].repeat_interleave(self.generate_params["num_return_sequences"], dim=0).to(self.model.device), -torch.inf)
+
         return preds, scores
+
+
+class FilterSeenProcessor(LogitsProcessor):
+
+    def __call__(self, input_ids: torch.LongTensor, scores: torch.FloatTensor) -> torch.FloatTensor:
+        
+        return scores.scatter_(1, input_ids, -float('inf'))
 
 
 class SeqRec(SeqRecBase):
@@ -286,8 +323,6 @@ class SeqRecWithSampling(SeqRec):
             loss_fct = nn.CrossEntropyLoss()
             loss = loss_fct(logits.view(-1, logits.size(-1)), targets.view(-1))
         elif self.loss == 'bce':
-            # loss_fct = nn.BCEWithLogitsLoss()
-            # loss = loss_fct(logits, targets)
             loss_fct = nn.BCEWithLogitsLoss(reduction='none')
             loss = loss_fct(logits, targets)
             loss = loss[batch['labels'] != -100]

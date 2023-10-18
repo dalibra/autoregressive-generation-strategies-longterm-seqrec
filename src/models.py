@@ -36,6 +36,11 @@ class BERT4Rec(nn.Module):
 
     def init_weights(self):
 
+        # initialization in huggingface transformers
+        # https://github.com/huggingface/transformers/blob/v4.25.1/src/transformers/models/gpt2/modeling_gpt2.py#L462
+        # initialization in pytorch Embeddings
+        # https://github.com/pytorch/pytorch/blob/1.7/torch/nn/modules/sparse.py#L117
+
         self.embed_layer.weight.data.normal_(mean=0.0, std=self.init_std)
         if self.padding_idx is not None:
             self.embed_layer.weight.data[self.padding_idx].zero_()

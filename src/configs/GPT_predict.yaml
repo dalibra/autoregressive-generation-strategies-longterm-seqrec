@@ -1,7 +1,8 @@
 cuda_visible_devices: 0
 
-project_name: generation_paper
+project_name: sequential_recsys/generation_paper
 task_name: GPT_predict
+seed: 1337
 
 train_task: 0
 
@@ -9,8 +10,14 @@ evaluator:
   top_k: [10]
 test_metrics: True
 
+dataloader:
+  test_batch_size: 16
+
 generation: False
+mode: 'reciprocal_rank_aggregation'
 generation_params:
   num_return_sequences: 1
-  no_repeat_ngram_size: 1
+  # no_repeat_ngram_size: 1
   do_sample: False
+  # temperature: 0.1
+  # num_beams: 1

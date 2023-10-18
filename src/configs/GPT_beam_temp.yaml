@@ -1,7 +1,7 @@
 cuda_visible_devices: 0
 
 project_name: sequential_recsys/generation_paper
-task_name: GPT_greedy
+task_name: GPT_beam_temp
 seed: 1337
 
 train_task: 0
@@ -18,6 +18,6 @@ mode: 'reciprocal_rank_aggregation'
 generation_params:
   num_return_sequences: 1
   # no_repeat_ngram_size: 1
-  do_sample: False
-  # temperature: 0.1
-  # num_beams: 1
+  do_sample: True
+  temperature: 0.1
+  num_beams: 1

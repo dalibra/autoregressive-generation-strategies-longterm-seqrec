@@ -8,19 +8,24 @@ import os
 import hydra
 import numpy as np
 import pandas as pd
-import pytorch_lightning as pl
-import torch
+
 from clearml import Task
 from omegaconf import OmegaConf
 from pytorch_lightning.callbacks import (EarlyStopping, ModelCheckpoint,
                                          ModelSummary, TQDMProgressBar)
+from torch import nn
+from torch.utils.data import DataLoader
+import pytorch_lightning as pl
+import torch
+
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader
-from transformers import GPT2Config, GPT2LMHeadModel
+from transformers import GPT2Config, GPT2LMHeadModel, BertConfig, BertModel
 
-from datasets import CausalLMDataset, CausalLMPredictionDataset, PaddingCollateFn
+from datasets import CausalLMDataset, CausalLMPredictionDataset, PaddingCollateFn, MaskedLMDataset, MaskedLMPredictionDataset
 from metrics import Evaluator
-from modules import SeqRecHuggingface
+from modules import SeqRecHuggingface, SeqRec
+from models import SASRec, BERT4Rec
 from postprocess import preds2recs
 from preprocess import add_time_idx
 
@@ -34,6 +39,10 @@ def main(config):
         os.environ['CUDA_VISIBLE_DEVICES'] = str(config.cuda_visible_devices)
 
     if hasattr(config, 'project_name'):
+        if hasattr(config, 'seed'):
+            Task.set_random_seed(config.seed)
+        else:
+            Task.set_random_seed(None)
         task = Task.init(project_name=config.project_name, task_name=config.task_name,
                         reuse_last_task_id=False)
         task.connect(OmegaConf.to_container(config))
@@ -69,6 +78,10 @@ def prepare_data(config):
     data = pd.read_csv(config.data_path)
     data = add_time_idx(data)
 
+    # index 1 is used for masking value
+    if config.model == 'BERT4Rec':
+        data.item_id += 1
+
     train = data[data.time_idx_reversed >= config.last_n_items]
     test = data[data.time_idx_reversed < config.last_n_items]
 
@@ -97,14 +110,12 @@ def create_dataloaders(train, validation, config):
     validation_users = validation.user_id.unique()
     if validation_size and (validation_size < len (validation_users)):
         
-        np.random.seed(42) ##############
-        
+        np.random.seed(42)
         validation_users = np.random.choice(validation_users, size=validation_size, replace=False)
         validation = validation[validation.user_id.isin(validation_users)]
-
-    train_dataset = CausalLMDataset(train, **config['dataset'])
-    eval_dataset = CausalLMPredictionDataset(
-        validation, max_length=config.dataset.max_length, validation_mode=True)
+    
+    train_dataset = MaskedLMDataset(train, **config['dataset']) if config.model == 'BERT4Rec' else CausalLMDataset(train, **config['dataset'])
+    eval_dataset = MaskedLMPredictionDataset(validation, max_length=config.dataset.max_length, validation_mode=True) if config.model == 'BERT4Rec' else CausalLMPredictionDataset(validation, max_length=config.dataset.max_length, validation_mode=True)
 
     train_loader = DataLoader(train_dataset, batch_size=config.dataloader.batch_size,
                               shuffle=True, num_workers=config.dataloader.num_workers,
@@ -118,9 +129,14 @@ def create_dataloaders(train, validation, config):
 
 def create_model(config, item_count, weights_path=None):
 
-    gpt2_config = GPT2Config(vocab_size=item_count + 1, **config.model_params)
-    model = GPT2LMHeadModel(gpt2_config)
-
+    if config.model == 'GPT-2':
+        gpt2_config = GPT2Config(vocab_size=item_count + 1, **config.model_params)
+        model = GPT2LMHeadModel(gpt2_config)
+    elif config.model == 'SASRec':
+        model = SASRec(item_num=item_count, **config.model_params)
+    elif config.model == 'BERT4Rec':
+        model = BERT4Rec(vocab_size=item_count + 1, add_head=True, tie_weights=True, bert_config=config.model_params) #######################?
+        
     if weights_path is not None:
         model.load_state_dict(torch.load(weights_path))
 
@@ -129,7 +145,12 @@ def create_model(config, item_count, weights_path=None):
 
 def training(model, train_loader, eval_loader, config):
 
-    seqrec_module = SeqRecHuggingface(model, **config['seqrec_module'])
+    if config.model == 'GPT-2':
+        seqrec_module = SeqRecHuggingface(model, **config['seqrec_module'])
+    elif config.model == 'SASRec':
+        seqrec_module = SeqRec(model, **config['seqrec_module'])
+    elif config.model == 'BERT4Rec':
+        seqrec_module = SeqRec(model, **config['seqrec_module'])
 
     early_stopping = EarlyStopping(monitor="val_ndcg", mode="max",
                                    patience=config.patience, verbose=False)
@@ -153,24 +174,42 @@ def training(model, train_loader, eval_loader, config):
 
 def predict(trainer, seqrec_module, data, config):
 
-    if config.generation:
-        predict_dataset = CausalLMPredictionDataset(
-            data, max_length=config.dataset.max_length - max(config.evaluator.top_k))
-        predict_loader = DataLoader(
-            predict_dataset, shuffle=False,
-            collate_fn=PaddingCollateFn(left_padding=True),
-            batch_size=1,
-            num_workers=config.dataloader.num_workers)
-        seqrec_module.set_predict_mode(generate=True, **config.generation_params) #####
-    else:
+    if config.model == 'GPT-2':
+        if config.generation:
+            predict_dataset = CausalLMPredictionDataset(
+                data, max_length=config.dataset.max_length - max(config.evaluator.top_k))
+            
+            predict_loader = DataLoader(
+                predict_dataset, shuffle=False,
+                collate_fn=PaddingCollateFn(left_padding=True),
+                batch_size=config.dataloader.test_batch_size,
+                num_workers=config.dataloader.num_workers)
+            seqrec_module.set_predict_mode(generate=True, mode=config.mode, **config.generation_params)
+        else:
+            predict_dataset = CausalLMPredictionDataset(data, max_length=config.dataset.max_length)
+            predict_loader = DataLoader(
+                predict_dataset, shuffle=False,
+                collate_fn=PaddingCollateFn(),
+                batch_size=config.dataloader.test_batch_size,
+                num_workers=config.dataloader.num_workers)
+            seqrec_module.set_predict_mode(generate=False)
+        
+    elif config.model == 'SASRec':
         predict_dataset = CausalLMPredictionDataset(data, max_length=config.dataset.max_length)
         predict_loader = DataLoader(
             predict_dataset, shuffle=False,
             collate_fn=PaddingCollateFn(),
             batch_size=config.dataloader.test_batch_size,
             num_workers=config.dataloader.num_workers)
-        seqrec_module.set_predict_mode(generate=False) #######################
         
+    elif config.model == 'BERT4Rec':
+        predict_dataset = MaskedLMPredictionDataset(data, max_length=config.dataset.max_length)
+        predict_loader = DataLoader(
+            predict_dataset, shuffle=False,
+            collate_fn=PaddingCollateFn(),
+            batch_size=config.dataloader.test_batch_size,
+            num_workers=config.dataloader.num_workers)
+
     seqrec_module.predict_top_k = max(config.evaluator.top_k)
     preds = trainer.predict(model=seqrec_module, dataloaders=predict_loader)
 

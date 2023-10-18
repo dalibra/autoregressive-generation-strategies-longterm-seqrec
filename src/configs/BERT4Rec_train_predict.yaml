@@ -1,15 +1,15 @@
 cuda_visible_devices: 0
 
 project_name: sequential_recsys/generation_paper
-task_name: GPT_train_predict
-seed: 1337
+task_name: BERT4Rec_train_predict
 
 data_path: ../data/ml-20m.csv
 last_n_items: 10
 
 dataset:
   max_length: 128
-  shift_labels: False
+  mlm_probability: 0.2
+  force_last_item_masking_prob: 0
 
 dataloader:
   batch_size: 64
@@ -17,12 +17,14 @@ dataloader:
   num_workers: 8
   validation_size: 10000
 
-model: 'GPT-2'
+model: 'BERT4Rec'
 model_params:
-  n_positions: 128
-  n_embd: 64
-  n_layer: 2
-  n_head: 1
+  vocab_size: 2
+  max_position_embeddings: 256
+  hidden_size: 64
+  num_hidden_layers: 2
+  num_attention_heads: 2
+  intermediate_size: 256
 
 seqrec_module:
   lr: 0.001
@@ -30,11 +32,9 @@ seqrec_module:
   filter_seen: True
 
 trainer_params:
-  max_epochs: 100
-patience: 10
+  max_epochs: 200
+patience: 20
 
 evaluator:
   top_k: [10]
 test_metrics: True
-
-generation: False

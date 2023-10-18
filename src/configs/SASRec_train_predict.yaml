@@ -1,15 +1,13 @@
 cuda_visible_devices: 0
 
 project_name: sequential_recsys/generation_paper
-task_name: GPT_train
-seed: 1337
+task_name: SASRec_train_predict
 
-data_path: data/ml-20m.csv
+data_path: ../data/ml-20m.csv
 last_n_items: 10
 
 dataset:
   max_length: 128
-  shift_labels: False
 
 dataloader:
   batch_size: 64
@@ -17,12 +15,13 @@ dataloader:
   num_workers: 8
   validation_size: 10000
 
-model: 'GPT-2'
+model: 'SASRec'
 model_params:
-  n_positions: 128
-  n_embd: 64
-  n_layer: 2
-  n_head: 1
+    maxlen: 128
+    hidden_units: 64
+    num_blocks: 2
+    num_heads: 1
+    dropout_rate: 0.1
 
 seqrec_module:
   lr: 0.001
@@ -32,3 +31,7 @@ seqrec_module:
 trainer_params:
   max_epochs: 100
 patience: 10
+
+evaluator:
+  top_k: [10]
+test_metrics: True
