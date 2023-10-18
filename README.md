@@ -10,7 +10,7 @@ Install requirements:
 ```sh
 pip install -r requirements.txt
 ```
-This repository has been tested with `Python 3.9.16`. **Note, that the code doesn't work with `Python >= 3.10`, since `recommenders` library requires `Python < 3.10`**.
+This repository has been tested with `Python 3.9.16`. **Note, that the code doesn't work with `Python >= 3.10` since the `recommenders` library requires `Python < 3.10`**.
 
 Before running the code, create a `data/` folder and place the preprocessed datasets inside. You can see an example of the preprocessing in `notebooks/Example_preprocessing_ml-20m.ipynb`. You can also download preprocessed datasets directly: [ML-20M](https://anonymfile.com/3rKP/ml-20m.csv), [Yelp](https://anonymfile.com/8Bzn/yelp.csv), [Steam](https://anonymfile.com/ry5Z/steam.csv), [Gowalla](https://anonymfile.com/4a1k/gowalla.csv), [Twitch-100k](https://anonymfile.com/mLX1/twitch.csv), [BeerAdvocate](https://anonymfile.com/k6RW/beer-advocate.csv).
 
@@ -24,7 +24,7 @@ Below are examples of training GPT-2 and testing the obtained model with differe
 ```
 python src/run_train.py --config-name=GPT_train data_path=data/ml-1m.csv task_name=ml1_GPT_train seqrec_module.lr=1e-3
 ```
-To use trained model for inference, copy task ID `<TRAIN_ID>` from the obtained ClearML training page.
+To later use the trained model for inference, copy task ID `<TRAIN_ID>` from the obtained ClearML training page.
 
 ### Test Model
 
@@ -44,10 +44,18 @@ Beam search:
 python src/run_predict.py --multirun --config-name=GPT_beam task_name=ml1_GPT_beam train_task=<TRAIN_ID> generation_params.num_beams=2,3
 ```
 
-BPR-MF code and experements are in a separate notebook `notebooks/BPR-MF.ipynb`.
-
 Temperature sampling with multi-sequence aggregation:
 
 ```
 python src/run_predict.py --config-name=GPT_temperature task_name=ml1_GPT_multisequence train_task=<TRAIN_ID> generation_params.temperature=0.3 generation_params.num_return_sequences=20
 ```
+
+Baselines:
+```
+# SASRec+
+python src/run_train_predict.py --config-name=SASRec_train_predict data_path=data/ml-20m.csv task_name=steam_SASRec_predict dataloader.test_batch_size=256
+# BERT4Rec
+python src/run_train_predict.py --config-name=BERT4Rec_train_predict data_path=data/ml-20m.csv task_name=steam_BERT4Rec_predict dataloader.test_batch_size=256
+```
+
+BPR-MF code and experiments are in a separate notebook `notebooks/BPR-MF.ipynb`.
