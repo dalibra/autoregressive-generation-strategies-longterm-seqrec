@@ -27,7 +27,7 @@ python src/run_train_predict.py --config-name=SASRec_train_predict data_path=dat
 python src/run_train_predict.py --config-name=BERT4Rec_train_predict data_path=data/ml-20m.csv task_name=ml-20m_BERT4Rec_predict dataloader.test_batch_size=256
 ```
 
-BPR-MF code and experiments are in a separate notebook `notebooks/BPR-MF.ipynb`.
+BPR-MF code and experiments are in a separate notebook `notebooks/BPR_MF.ipynb`.
 
 To optimize our process, we can train the model once and then deploy the trained version for subsequent tests, eliminating the need to retrain it with every run. For that, save task ID `<TRAIN_ID>` from the obtained `ClearML` training page.
 ```sh
@@ -37,29 +37,16 @@ python src/run_train.py --config-name=GPT_train data_path=data/ml-20m.csv task_n
 And then use `<TRAIN_ID>` as an argument for `train_task` parameter:
 ```sh
 # GPT Top-K prediction
-python src/run_predict.py --config-name=GPT_predict task_name=ml-20m_GPT_predict train_task=<TRAIN_ID>
+python src/run_predict.py --config-name=GPT_predict train_task=<TRAIN_ID> task_name=ml-20m_GPT_predict dataloader.test_batch_size=256
 ```
 
 ### Generation strategies
 
-Top-K prediction:
-```
-python src/run_predict.py --config-name=GPT_predict task_name=ml1_GPT_predict train_task=<TRAIN_ID>
-```
-Greedy decoding:
-
-```
-python src/run_predict.py --config-name=GPT_greedy task_name=ml1_GPT_greedy train_task=<TRAIN_ID>
-```
-
-Beam search:
-
-```
-python src/run_predict.py --multirun --config-name=GPT_beam task_name=ml1_GPT_beam train_task=<TRAIN_ID> generation_params.num_beams=2,3
-```
-
-Temperature sampling with multi-sequence aggregation:
-
-```
-python src/run_predict.py --config-name=GPT_temperature task_name=ml1_GPT_multisequence train_task=<TRAIN_ID> generation_params.temperature=0.3 generation_params.num_return_sequences=20
+```sh
+# Greedy decoding
+python src/run_predict.py --config-name=GPT_greedy train_task=<TRAIN_ID> task_name=ml-20m_GPT_greedy 
+# Beam search:
+python src/run_predict.py --config-name=GPT_beam train_task=<TRAIN_ID> task_name=ml-20m_GPT_beam generation_params.num_beams=2
+# Temperature sampling with multi-sequence aggregation:
+python src/run_predict.py --config-name=GPT_temperature train_task=<TRAIN_ID> task_name=ml-20m_GPT_multisequence generation_params.temperature=0.3 generation_params.num_return_sequences=20
 ```
