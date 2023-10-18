@@ -47,10 +47,10 @@ python src/run_predict.py --config-name=GPT_predict train_task=<TRAIN_ID> task_n
 # Greedy decoding
 python src/run_predict.py --config-name=GPT_greedy train_task=<TRAIN_ID> task_name=ml-20m_GPT_greedy
 
-# Beam search
+# Beam search with number of beams 2
 python src/run_predict.py --config-name=GPT_beam train_task=<TRAIN_ID> task_name=ml-20m_GPT_beam generation_params.num_beams=2
 
-# Temperature sampling
+# Temperature sampling with temperature 0.5
 python src/run_predict.py --config-name=GPT_temperature train_task=<TRAIN_ID> task_name=ml-20m_GPT_multisequence generation_params.temperature=0.5
 
 # Reciprocal rank aggregation with 30 sequences and the best temperature
