@@ -129,8 +129,7 @@ class SeqRecHuggingface(SeqRecBase):
         Set `predict` options.
         If `generate` is False, the general predict method is used, which returns top-k most relevant next items.
         If `generate` is True, the sequence is continued with the `generate` method of the HuggingFaceModel class.
-        `generate_kwargs` are passed to model.generate(). Default generate_params are
-        {"early_stopping": False, "no_repeat_ngram_size": 1}.
+        `generate_kwargs` are passed to model.generate().
         `Generate` params are explained here: https://huggingface.co/blog/how-to-generate.
         If 'mode' is 'reciprocal_rank_aggregation', for each item sum reciprocal ranks across all sequences; also used for greedy search, beam search and temperature sampling with a single sequence, because it takes into account only the order of items in the generated sequence.
         If 'mode' is 'relevance_aggregation', for each item sum relevances across all steps, then across all sequences.
