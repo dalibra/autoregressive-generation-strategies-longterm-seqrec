@@ -51,7 +51,7 @@ python src/run_predict.py --config-name=GPT_temperature task_name=ml1_GPT_multis
 ```
 
 Baselines:
-```
+```sh
 # SASRec+
 python src/run_train_predict.py --config-name=SASRec_train_predict data_path=data/ml-20m.csv task_name=steam_SASRec_predict dataloader.test_batch_size=256
 # BERT4Rec
