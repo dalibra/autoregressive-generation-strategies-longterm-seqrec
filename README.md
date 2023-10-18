@@ -10,7 +10,7 @@ Install requirements:
 ```sh
 pip install -r requirements.txt
 ```
-This repository has been tested with `Python 3.9.16`. **Note, that the code doesn't work with `Python >= 3.10` since the `recommenders` library requires `Python < 3.10`**.
+This repository has been tested with `Python 3.9.16`. **Note, that the current version of the code doesn't work with `Python >= 3.10` since the `recommenders` library requires `Python < 3.10`**.
 
 Before running the code, create a `data/` folder and place the preprocessed datasets inside. You can see an example of the preprocessing in `notebooks/Example_preprocessing_ml-20m.ipynb`. You can also download preprocessed datasets directly: [ML-20M](https://anonymfile.com/3rKP/ml-20m.csv), [Yelp](https://anonymfile.com/8Bzn/yelp.csv), [Steam](https://anonymfile.com/ry5Z/steam.csv), [Gowalla](https://anonymfile.com/4a1k/gowalla.csv), [Twitch-100k](https://anonymfile.com/mLX1/twitch.csv), [BeerAdvocate](https://anonymfile.com/k6RW/beer-advocate.csv).
 
