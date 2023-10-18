@@ -23,6 +23,7 @@ Baselines:
 ```sh
 # SASRec+
 python src/run_train_predict.py --config-name=SASRec_train_predict data_path=data/ml-20m.csv task_name=ml-20m_SASRec_predict dataloader.test_batch_size=256
+
 # BERT4Rec
 python src/run_train_predict.py --config-name=BERT4Rec_train_predict data_path=data/ml-20m.csv task_name=ml-20m_BERT4Rec_predict dataloader.test_batch_size=256
 ```
@@ -44,9 +45,17 @@ python src/run_predict.py --config-name=GPT_predict train_task=<TRAIN_ID> task_n
 
 ```sh
 # Greedy decoding
-python src/run_predict.py --config-name=GPT_greedy train_task=<TRAIN_ID> task_name=ml-20m_GPT_greedy 
-# Beam search:
+python src/run_predict.py --config-name=GPT_greedy train_task=<TRAIN_ID> task_name=ml-20m_GPT_greedy
+
+# Beam search
 python src/run_predict.py --config-name=GPT_beam train_task=<TRAIN_ID> task_name=ml-20m_GPT_beam generation_params.num_beams=2
-# Temperature sampling with multi-sequence aggregation:
-python src/run_predict.py --config-name=GPT_temperature train_task=<TRAIN_ID> task_name=ml-20m_GPT_multisequence generation_params.temperature=0.3 generation_params.num_return_sequences=20
+
+# Temperature sampling
+python src/run_predict.py --config-name=GPT_temperature train_task=<TRAIN_ID> task_name=ml-20m_GPT_multisequence generation_params.temperature=0.5
+
+# Temperature sampling
+python src/run_predict.py --config-name=GPT_temperature train_task=<TRAIN_ID> task_name=ml-20m_GPT_multisequence generation_params.temperature=0.5 generation_params.num_return_sequences=30 generation_params.top_k=10
+
+# Temperature sampling
+python src/run_predict.py --config-name=GPT_temperature train_task=<TRAIN_ID> task_name=ml-20m_GPT_multisequence generation_params.temperature=1.2 generation_params.num_return_sequences=30 generation_params.top_k=0
 ```
