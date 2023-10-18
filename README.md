@@ -12,8 +12,7 @@ pip install -r requirements.txt
 ```
 This repository has been tested with `Python 3.9.16`. **Note, that the code doesn't work with `Python >= 3.10`, since `recommenders` library requires `Python < 3.10`**.
 
-`notebooks` contains code for baselines mentioned in the paper: BPR-MF, BERT4Rec and SASRec.
-BPR-MF code is in a separate notebook `notebooks/BPR-MF.ipynb`
+or you can directly download preprocessed datasets: [ML-20M](https://anonymfile.com/3rKP/ml-20m.csv), [Yelp](https://anonymfile.com/8Bzn/yelp.csv), [Steam](https://anonymfile.com/ry5Z/steam.csv), [Gowalla](https://anonymfile.com/4a1k/gowalla.csv), [Twitch-100k](https://anonymfile.com/mLX1/twitch.csv), [BeerAdvocate](https://anonymfile.com/k6RW/beer-advocate.csv).
 
 We use [Hydra](https://hydra.cc/) for configuring the experements and [ClearML](`https://clear.ml/docs/latest/docs`) to log results.
 All configurable parameters can be found in corresponding configs at `src/configs`, and also they can be overriden from the command line.
@@ -44,6 +43,8 @@ Beam search:
 ```
 python src/run_predict.py --multirun --config-name=GPT_beam task_name=ml1_GPT_beam train_task=<TRAIN_ID> generation_params.num_beams=2,3
 ```
+
+BPR-MF code and experements are in a separate notebook `notebooks/BPR-MF.ipynb`.
 
 Temperature sampling with multi-sequence aggregation:
 
