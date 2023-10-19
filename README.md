@@ -12,7 +12,7 @@ pip install -r requirements.txt
 ```
 This repository has been tested with `Python 3.9.16`. **Note, that the current version of the code doesn't work with `Python >= 3.10` since the `recommenders` library requires `Python < 3.10`**.
 
-Before running the code, create a `data/` folder and place the preprocessed datasets inside. You can see an example of the preprocessing in `notebooks/Example_preprocessing_ml-20m.ipynb`. You can also download preprocessed datasets directly: [ML-20M](https://anonymfile.com/3rKP/ml-20m.csv), [Yelp](https://anonymfile.com/8Bzn/yelp.csv), [Steam](https://anonymfile.com/ry5Z/steam.csv), [Gowalla](https://anonymfile.com/4a1k/gowalla.csv), [Twitch-100k](https://anonymfile.com/mLX1/twitch.csv), [BeerAdvocate](https://anonymfile.com/k6RW/beer-advocate.csv).
+Before running the code, create a `data/` folder and place the preprocessed datasets inside. You can see an example of the preprocessing in `notebooks/Example_preprocessing_ml-20m.ipynb`. You can also download preprocessed datasets directly: [ML-20M](https://disk.yandex.ru/d/bsp3rd-l_EpExA), [Yelp](https://disk.yandex.ru/d/UTKDilplnEV2iA), [Steam](https://disk.yandex.ru/d/4a2zDGsNnrR9rA), [Gowalla](https://disk.yandex.ru/d/K5K2CYuQF9KhMA), [Twitch-100k](https://disk.yandex.ru/d/lPiiN5ug0WQ3gw), [BeerAdvocate](https://disk.yandex.ru/d/8nImZhLxbLrkIw).
 
 We use [Hydra](https://hydra.cc/) for configuring the experiments and [ClearML](`https://clear.ml/docs/latest/docs`) to log results.
 All configurable parameters can be found in corresponding configs at `src/configs` and can be overridden from the command line.
