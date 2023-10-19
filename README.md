@@ -54,7 +54,7 @@ python src/run_predict.py --config-name=GPT_greedy train_task=<TRAIN_ID> task_na
 python src/run_predict.py --config-name=GPT_beam train_task=<TRAIN_ID> task_name=ml-20m_GPT_beam generation_params.num_beams=2 dataloader.test_batch_size=72
 
 # Temperature sampling with temperature 0.5
-python src/run_predict.py --config-name=GPT_temperature train_task=<TRAIN_ID> task_name=ml-20m_GPT_multisequence generation_params.temperature=0.5 dataloader.test_batch_size=72
+python src/run_predict.py --config-name=GPT_temperature train_task=<TRAIN_ID> task_name=ml-20m_GPT_temperature generation_params.temperature=0.5 dataloader.test_batch_size=72
 
 # Reciprocal rank aggregation with 30 sequences and the best temperature
 python src/run_predict.py --config-name=GPT_temperature train_task=<TRAIN_ID> task_name=ml-20m_GPT_multisequence generation_params.temperature=0.5 mode='reciprocal_rank_aggregation' generation_params.num_return_sequences=30 generation_params.top_k=10 dataloader.test_batch_size=72
