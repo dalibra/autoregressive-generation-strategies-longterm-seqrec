@@ -25,10 +25,10 @@ Below you can find examples of training the models and then testing them using d
 #### Baselines:
 ```sh
 # SASRec+
-python src/run_train_predict.py --config-name=SASRec_train_predict data_path=data/ml-20m.csv task_name=ml-20m_SASRec_predict dataloader.test_batch_size=256 model_params.hidden_units=256
+python src/run_train_predict.py --config-name=SASRec_train_predict data_path=data/ml-20m.csv task_name=ml-20m_SASRec_train_predict dataloader.test_batch_size=256 model_params.hidden_units=256
 
 # BERT4Rec
-python src/run_train_predict.py --config-name=BERT4Rec_train_predict data_path=data/ml-20m.csv task_name=ml-20m_BERT4Rec_predict dataloader.test_batch_size=256 model_params.hidden_size=256
+python src/run_train_predict.py --config-name=BERT4Rec_train_predict data_path=data/ml-20m.csv task_name=ml-20m_BERT4Rec_train_predict dataloader.test_batch_size=256 model_params.hidden_size=256
 ```
 
 BPR-MF code and experiments are in a separate notebook `notebooks/BPR_MF.ipynb`.
@@ -36,7 +36,7 @@ BPR-MF code and experiments are in a separate notebook `notebooks/BPR_MF.ipynb`.
 To optimize our process, we can train the model once and then deploy the trained version for subsequent tests, eliminating the need to retrain it with every run. For that, save task ID `<TRAIN_ID>` from the obtained `ClearML` training page.
 ```sh
 # Train GPT-2 model
-python src/run_train.py --config-name=GPT_train data_path=data/ml-20m.csv task_name=ml-20m_GPT_predict dataloader.test_batch_size=256 model_params.n_embd=256
+python src/run_train.py --config-name=GPT_train data_path=data/ml-20m.csv task_name=ml-20m_GPT_train dataloader.test_batch_size=256 model_params.n_embd=256
 ```
 And then use `<TRAIN_ID>` as an argument for `train_task` parameter:
 ```sh
