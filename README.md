@@ -6,7 +6,10 @@ We explore commonly used autoregressive generation strategies, including greedy 
 
 Experiments on diverse datasets give valuable insights regarding commonly used strategies' applicability and show that suggested approaches improve performance on longer time horizons compared to widely-used Top-K prediction approach and single-sequence autoregressive generation strategies. 
 
+Reciprocal Rank Aggregation:
 ![RRA scheme](assets/strat1.png?raw=true)
+
+Relevance Aggregation:
 ![RA scheme](assets/strat2.png?raw=true)
 
 ## Usage
