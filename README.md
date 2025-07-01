@@ -71,7 +71,7 @@ python src/run_predict.py --config-name=GPT_temperature train_task=<TRAIN_ID> ta
 python src/run_predict.py --config-name=GPT_temperature train_task=<TRAIN_ID> task_name=ml-20m_GPT_multisequence generation_params.temperature=0.7 mode='relevance_aggregation' generation_params.num_return_sequences=30 generation_params.top_k=0 dataloader.test_batch_size=72
 ```
 
-#### Hyperparameter Tuning
+#### Hyperparameter tuning
 
 ```sh
 # Reciprocal rank aggregation with tuning top_k and temperature
