@@ -64,9 +64,20 @@ python src/run_predict.py --config-name=GPT_beam train_task=<TRAIN_ID> task_name
 # Temperature sampling with temperature 0.5
 python src/run_predict.py --config-name=GPT_temperature train_task=<TRAIN_ID> task_name=ml-20m_GPT_temperature generation_params.temperature=0.5 dataloader.test_batch_size=72
 
-# Reciprocal rank aggregation with 30 sequences and the best temperature
-python src/run_predict.py --config-name=GPT_temperature train_task=<TRAIN_ID> task_name=ml-20m_GPT_multisequence generation_params.temperature=0.5 mode='reciprocal_rank_aggregation' generation_params.num_return_sequences=30 generation_params.top_k=10 dataloader.test_batch_size=72
+# Reciprocal rank aggregation with 30 sequences and the best temperature with the best top_k
+python src/run_predict.py --config-name=GPT_temperature train_task=<TRAIN_ID> task_name=ml-20m_GPT_multisequence generation_params.temperature=0.6 mode='reciprocal_rank_aggregation' generation_params.num_return_sequences=30 generation_params.top_k=20 dataloader.test_batch_size=72
 
-# Relevance aggregation with 30 sequences and the best temperature
-python src/run_predict.py --config-name=GPT_temperature train_task=<TRAIN_ID> task_name=ml-20m_GPT_multisequence generation_params.temperature=1.2 mode='relevance_aggregation' generation_params.num_return_sequences=30 generation_params.top_k=0 dataloader.test_batch_size=72
+# Relevance aggregation with 30 sequences and the best temperature 
+python src/run_predict.py --config-name=GPT_temperature train_task=<TRAIN_ID> task_name=ml-20m_GPT_multisequence generation_params.temperature=0.7 mode='relevance_aggregation' generation_params.num_return_sequences=30 generation_params.top_k=0 dataloader.test_batch_size=72
 ```
+
+#### Hyperparameter Tuning
+
+```sh
+# Reciprocal rank aggregation with tuning top_k and temperature
+python src/run_predict.py --config-name=GPT_RRA_Optuna train_task=<TRAIN_ID> task_name=ml-20m_GPT_multisequence dataloader.test_batch_size=72 --multirun 
+
+# Relevance aggregation with tuning temperature
+python src/run_predict.py --config-name=GPT_temperature train_task=<TRAIN_ID> task_name=ml-20m_GPT_multisequence generation_params.temperature='choice(1e-3, 3e-3, 1e-2, 3e-2, 5e-2, 0.1, 0.2, 0.3, 0.5, 0.6, 0.7, 1.0, 1.3, 1.6, 2.0, 3.0, 5.0)' mode='relevance_aggregation' generation_params.num_return_sequences=30 generation_params.top_k=0 dataloader.test_batch_size=72 --multirun
+```
+
