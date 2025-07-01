@@ -62,8 +62,12 @@ def main(config):
     else:
         recs = predict(trainer, seqrec_module,
                        train[train.user_id.isin(validation.user_id.unique())], config)
-
-    evaluate(recs, validation, train, task, config, prefix='val')
+    
+    if hasattr(config, 'optuna_metrics'):
+        val_metrics = evaluate(recs, validation[validation.time_idx == 0], train, task, config, prefix='val')
+        return val_metrics[val_metrics['metric_name'] == config.optuna_metrics]['metric_value'].values
+    else:
+        evaluate(recs, validation, train, task, config, prefix='val')
     if config.test_metrics:
         evaluate(recs, test, train, task, config, prefix='test')
 
@@ -160,7 +164,7 @@ def training(model, train_loader, eval_loader, config):
     progress_bar = TQDMProgressBar(refresh_rate=100)
     callbacks=[early_stopping, model_summary, checkpoint, progress_bar]
 
-    trainer = pl.Trainer(callbacks=callbacks, gpus=1, enable_checkpointing=True,
+    trainer = pl.Trainer(callbacks=callbacks, enable_checkpointing=True,
                          **config['trainer_params'])
 
     trainer.fit(model=seqrec_module,
@@ -266,7 +270,8 @@ def evaluate(recs, test, train, task, config, prefix='test'):
                                         series='dataframe',
                                         table_plot=metrics_by_time_idx_top_k_gt)
             task.upload_artifact(f'{prefix}_metrics_by_time_idx_top_k_gt',
-                                 metrics_by_time_idx_top_k_gt)
+                              metrics_by_time_idx_top_k_gt)
+    return metrics
 
 
 if __name__ == "__main__":
