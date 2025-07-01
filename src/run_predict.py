@@ -53,6 +53,10 @@ def main(config):
                        train[train.user_id.isin(validation.user_id.unique())], config)
     prediction_time = time.time() - start_time
     print('prediction_time', prediction_time)
+    
+    if hasattr(config, 'optuna_metrics'):
+        val_metrics = evaluate(recs, validation, train, task, config, prefix='val')
+        return val_metrics[val_metrics['metric_name'] == config.optuna_metrics]['metric_value'].values
 
     evaluate(recs, validation, train, task, config, prefix='val')
     if config.test_metrics:
@@ -71,7 +75,7 @@ def create_trainer(model, config):
     progress_bar = TQDMProgressBar(refresh_rate=100)
     callbacks=[progress_bar]
 
-    trainer = pl.Trainer(callbacks=callbacks, gpus=1, enable_checkpointing=False,
+    trainer = pl.Trainer(callbacks=callbacks, enable_checkpointing=False,
                          **config['trainer_params'])
 
     return trainer, seqrec_module

@@ -1,0 +1,45 @@
+defaults:
+  - _self_
+  - override hydra/sweeper: optuna
+  - override hydra/sweeper/sampler: tpe
+
+cuda_visible_devices: 0
+
+project_name: sequential_recsys/generation_paper/hyper/generation/${task_name}
+task_name: GPT_temperature
+seed: 1337
+data_path: /home/jovyan/Pembek/seqrec-datasets/data/steam.csv
+
+train_task: 0
+optuna_metrics: val_ndcg@10
+
+evaluator:
+  top_k: [10]
+test_metrics: False
+
+dataloader:
+  test_batch_size: 16
+
+hydra:
+  sweeper:
+    sampler:
+      _target_: optuna.samplers.TPESampler
+    direction: maximize
+    study_name: ${task_name}
+    # storage: "sqlite:///${task_name}.db"
+    n_trials: 50
+    n_jobs: 1
+    params:
+      generation_params.top_k: choice(2, 3, 4, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100)
+      generation_params.temperature: choice(1e-3, 3e-3, 1e-2, 3e-2, 5e-2, 0.1, 0.2, 0.3, 0.5, 0.6, 0.7, 1.0, 1.3, 1.6, 2.0, 3.0, 5.0)
+
+      
+generation: True
+mode: 'reciprocal_rank_aggregation'
+generation_params:
+  num_return_sequences: 1
+  # no_repeat_ngram_size: 1
+  do_sample: True
+  temperature: 0.1
+  top_k: 50
+  # num_beams: 1
