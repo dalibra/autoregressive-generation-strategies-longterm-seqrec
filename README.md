@@ -1,5 +1,8 @@
 # Autoregressive Generation Strategies for Top-K Sequential Recommendations
 
+<a href="https://arxiv.org/abs/2409.17730"><img src="https://img.shields.io/badge/arXiv-2409.17730-b31b1b.svg" height=22.5><a>
+[![License](https://img.shields.io/github/license/AIRI-Institute/al_toolbox)](./LICENSE)
+
 The goal of modern sequential recommender systems is often formulated in terms of next-item prediction. In this paper, we explore the applicability of generative transformer-based models for the Top-K sequential recommendation task, where the goal is to predict items a user is likely to interact with in the “near future”. 
 
 We explore commonly used autoregressive generation strategies, including greedy decoding, beam search, and temperature sampling to evaluate their performance for Top-K sequential recommendation task. In addition, we propose novel Reciprocal Rank Aggregation (RRA) and Relevance Aggregation (RA) generation strategies based on multi-sequence generation with temperature sampling and subsequent aggregation. 
